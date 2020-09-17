@@ -58,7 +58,7 @@ func (i *Inverter) DeleteInverterFromDB(db *mongo.Database) error {
 	}
 	res, err := db.Collection(inverterCollection).DeleteOne(ctx, filter)
 	if res.DeletedCount < 1 {
-		return fmt.Errorf("Inveror não encontrado")
+		return fmt.Errorf("Inversor não encontrado")
 	}
 	return err
 }
