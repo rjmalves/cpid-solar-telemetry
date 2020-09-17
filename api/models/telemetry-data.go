@@ -40,10 +40,7 @@ func (t *TelemetryData) AddDataToDB(db *mongo.Database) (primitive.ObjectID, err
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	oid, ok := res.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return primitive.NilObjectID, fmt.Errorf("Erro na conversão para OID")
-	}
+	oid, _ := res.InsertedID.(primitive.ObjectID)
 	return oid, nil
 }
 

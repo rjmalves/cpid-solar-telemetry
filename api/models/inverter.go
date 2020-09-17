@@ -24,16 +24,13 @@ type Inverter struct {
 }
 
 // AddInverterToDB : adds info about a inverter to the DB
-func (i *Inverter) AddInverterToDB(db mongo.Database) (primitive.ObjectID, error) {
+func (i *Inverter) AddInverterToDB(db *mongo.Database) (primitive.ObjectID, error) {
 	ctx := context.Background()
 	res, err := db.Collection(inverterCollection).InsertOne(ctx, i)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	oid, ok := res.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return primitive.NilObjectID, fmt.Errorf("Erro na conversão para OID")
-	}
+	oid, _ := res.InsertedID.(primitive.ObjectID)
 	return oid, nil
 }
 
