@@ -30,7 +30,7 @@ type Inverter struct {
 	TotalEnergy     float64            `bson:"totalEnergy" json:"totalEnergy"`
 }
 
-// AddInverterToDB : adds ino about a inverter to the DB
+// AddInverterToDB : adds info about a inverter to the DB
 func (i *Inverter) AddInverterToDB(db *mongo.Database) (primitive.ObjectID, error) {
 	ctx := context.Background()
 	res, err := db.Collection(inverterCollection).InsertOne(ctx, i)
@@ -41,7 +41,7 @@ func (i *Inverter) AddInverterToDB(db *mongo.Database) (primitive.ObjectID, erro
 	return oid, nil
 }
 
-// UpdateInverterInDB : updaes information of an inverter in the DB
+// UpdateInverterInDB : updates information of an inverter in the DB
 func (i *Inverter) UpdateInverterInDB(db *mongo.Database) error {
 	ctx := context.Background()
 	filter := bson.M{"serial": i.Serial}
@@ -50,7 +50,7 @@ func (i *Inverter) UpdateInverterInDB(db *mongo.Database) error {
 	return err
 }
 
-// DeleteInverterFromDB : deetes an inverter from the DB
+// DeleteInverterFromDB : deletes an inverter from the DB
 func (i *Inverter) DeleteInverterFromDB(db *mongo.Database) error {
 	ctx := context.Background()
 	filter := bson.M{
@@ -63,7 +63,7 @@ func (i *Inverter) DeleteInverterFromDB(db *mongo.Database) error {
 	return err
 }
 
-// FromScrapper : fills the inverter data from the HTML scrapper
+// FromScrapper : fills the inverter with data from the HTML scrapper
 func (i *Inverter) FromScrapper(e *colly.HTMLElement) error {
 	// Variables to only acquire information once
 	foundPower := false
@@ -107,8 +107,7 @@ func (i *Inverter) FromScrapper(e *colly.HTMLElement) error {
 					ele.ForEach("span", func(_ int, elem *colly.HTMLElement) {
 						if elem.Attr("class") == OTHER6 {
 							divData = elem.Text
-						}
-						if elem.Attr("class") == OTHER7 {
+						} else if elem.Attr("class") == OTHER7 {
 							switch divData {
 							case "Potência":
 								if !foundPower {
