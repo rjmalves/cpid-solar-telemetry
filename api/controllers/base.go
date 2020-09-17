@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -18,10 +20,12 @@ type Server struct {
 	DB                 *mongo.Database
 	InverterCollector  *colly.Collector
 	TelemetryCollector *colly.Collector
+	InverterPaths      []string
+	TelemetryPaths     []string
 }
 
 // Initialize : prepares the service to launch
-func (s *Server) Initialize(DBHost, DBPort, DBUser, DBPassword, DBDatabase string) error {
+func (s *Server) Initialize(DBHost, DBPort, DBUser, DBPassword, DBDatabase, inverters, telemetries string) error {
 	// Connects with the database
 	mongoURI := fmt.Sprintf("mongodb://%v:%v@%v:%v/%v", DBUser, DBPassword, DBHost, DBPort, DBDatabase)
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
@@ -45,6 +49,12 @@ func (s *Server) Initialize(DBHost, DBPort, DBUser, DBPassword, DBDatabase strin
 	// Creates the collectors
 	s.InverterCollector = colly.NewCollector()
 	s.TelemetryCollector = colly.NewCollector()
+	// Configures the collectors
+	s.InverterCollectorConfig()
+	s.TelemetryDataCollectorConfig()
+	// Parses the configured paths
+	s.InverterPaths = strings.Split(inverters, ",")
+	s.TelemetryPaths = strings.Split(telemetries, ",")
 	return nil
 }
 
@@ -58,11 +68,17 @@ func (s *Server) Terminate() error {
 }
 
 // Run : runs the service and recovers errors
-func (s *Server) Run() {
+func (s *Server) Run(appHost, appPort, iPeriod, tPeriod string) {
 	defer s.Terminate()
+	// Prepares the app URL for scrapper visiting
+	baseURL := fmt.Sprintf("http://%v:%v/", appHost, appPort)
 	// Runs collector routines
-	go s.InverterAcquisition()
-	go s.TelemetryDataAcquisition()
+	if i, err := strconv.ParseInt(iPeriod, 10, 64); err == nil {
+		go s.InverterAcquisition(baseURL, i)
+	}
+	if t, err := strconv.ParseInt(tPeriod, 10, 64); err == nil {
+		go s.TelemetryDataAcquisition(baseURL, t)
+	}
 	// Exits on SIGINT
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
