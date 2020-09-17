@@ -10,6 +10,12 @@ import (
 
 // TelemetryDataCollectorConfig : configures the telemetry data scrapper
 func (s *Server) TelemetryDataCollectorConfig() error {
+	s.TelemetryCollector.AllowURLRevisit = true
+	// Security parameters
+	s.TelemetryCollector.Limit(&colly.LimitRule{
+		Parallelism: 4,
+		RandomDelay: 10 * time.Millisecond,
+	})
 	// When a div with id is found
 	s.TelemetryCollector.OnHTML("div[id]", func(e *colly.HTMLElement) {
 		// If not the root div, ignores
@@ -42,7 +48,7 @@ func (s *Server) TelemetryDataAcquisition(baseURL string, tPeriod int64) {
 		for _, t := range s.TelemetryPaths {
 			// Checks timeout
 			cTime := time.Now().Unix()
-			if cTime-tTimers[t] > tPeriod {
+			if cTime-tTimers[t] >= tPeriod {
 				tTimers[t] = cTime
 				tURL := baseURL + t + "/"
 				go s.TelemetryCollector.Visit(tURL)

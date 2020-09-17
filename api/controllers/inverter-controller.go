@@ -10,6 +10,12 @@ import (
 
 // InverterCollectorConfig : configures the inverter data scrapper
 func (s *Server) InverterCollectorConfig() error {
+	s.InverterCollector.AllowURLRevisit = true
+	// Security parameters
+	s.InverterCollector.Limit(&colly.LimitRule{
+		Parallelism: 4,
+		RandomDelay: 10 * time.Millisecond,
+	})
 	// When a div with id is found
 	s.InverterCollector.OnHTML("div[id]", func(e *colly.HTMLElement) {
 		// If not the root div, ignores
@@ -42,7 +48,7 @@ func (s *Server) InverterAcquisition(baseURL string, iPeriod int64) {
 		for _, i := range s.InverterPaths {
 			// Checks timeout
 			cTime := time.Now().Unix()
-			if cTime-iTimers[i] > iPeriod {
+			if cTime-iTimers[i] >= iPeriod {
 				iTimers[i] = cTime
 				iURL := baseURL + i + "/"
 				go s.InverterCollector.Visit(iURL)
