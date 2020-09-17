@@ -7,7 +7,6 @@ RUN go mod download
 COPY . .
  
 RUN go build
-RUN ls
 
 FROM alpine
 WORKDIR /app
