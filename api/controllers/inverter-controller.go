@@ -22,10 +22,19 @@ func (s *Server) InverterCollectorConfig() error {
 		if e.Attr("id") != "root" {
 			return
 		}
+		// Processes the HTML
 		i := models.Inverter{}
 		i.FromScrapper(e)
-		// Prints the built data
-		fmt.Printf("Inverter: %v\n", i)
+		// Adds to DB or updates
+		if !i.AlreadyInDB(s.DB) {
+			if _, err := i.AddInverterToDB(s.DB); err != nil {
+				fmt.Printf("Error while adding inverter: %v\n", err)
+			}
+		} else {
+			if err := i.UpdateInverterInDB(s.DB); err != nil {
+				fmt.Printf("Error while updating inverter: %v\n", err)
+			}
+		}
 	})
 
 	// Before making a request print "Visiting ..."

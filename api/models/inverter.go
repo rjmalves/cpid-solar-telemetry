@@ -30,6 +30,16 @@ type Inverter struct {
 	TotalEnergy     float64            `bson:"totalEnergy" json:"totalEnergy"`
 }
 
+// AlreadyInDB : checks if a given inverter data is already in the DB
+func (i *Inverter) AlreadyInDB(db *mongo.Database) bool {
+	ctx := context.Background()
+	filter := bson.M{
+		"serial": i.Serial,
+	}
+	res := db.Collection(inverterCollection).FindOne(ctx, filter)
+	return !(res.Err() == mongo.ErrNoDocuments)
+}
+
 // AddInverterToDB : adds info about a inverter to the DB
 func (i *Inverter) AddInverterToDB(db *mongo.Database) (primitive.ObjectID, error) {
 	ctx := context.Background()

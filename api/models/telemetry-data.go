@@ -34,7 +34,7 @@ func (t *TelemetryData) AlreadyAcquired(db *mongo.Database) bool {
 		"lastTelemetryTime": t.LastTelemetryTime,
 	}
 	res := db.Collection(telemetryDataCollection).FindOne(ctx, filter)
-	return res.Err() != nil
+	return !(res.Err() == mongo.ErrNoDocuments)
 }
 
 // AddDataToDB : adds a telemetry read to the DB

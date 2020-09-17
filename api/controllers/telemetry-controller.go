@@ -22,10 +22,15 @@ func (s *Server) TelemetryDataCollectorConfig() error {
 		if e.Attr("id") != "root" {
 			return
 		}
+		// Processes the HTML
 		t := models.TelemetryData{}
 		t.FromScrapper(e)
-		// Prints the built data
-		fmt.Printf("Telemetry: %v\n", t)
+		// Adds to DB if needed
+		if !t.AlreadyAcquired(s.DB) {
+			if _, err := t.AddDataToDB(s.DB); err != nil {
+				fmt.Printf("Error while adding telemetryData: %v\n", err)
+			}
+		}
 	})
 
 	// Before making a request print "Visiting ..."

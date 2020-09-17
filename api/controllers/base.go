@@ -39,9 +39,23 @@ func (s *Server) Initialize(DBHost, DBPort, DBUser, DBPassword, DBDatabase, inve
 		return err
 	}
 	s.DB = client.Database(DBDatabase)
-	// Checks if first connection
+	// Checks if first connection for making the collection setups
 	colls, err := s.DB.ListCollectionNames(ctx, bson.D{})
-	if len(colls) == 0 {
+	if err != nil {
+		return err
+	}
+	inverterCollFound := false
+	telemetryCollFound := false
+	for _, c := range colls {
+		if c == "inverters" {
+			inverterCollFound = true
+		} else if c == "telemetryData" {
+			telemetryCollFound = true
+		}
+	}
+	shouldSetup := !(inverterCollFound && telemetryCollFound)
+	if shouldSetup {
+		fmt.Println("FAZENDO O SETUP")
 		if err := s.DBSetup(ctx); err != nil {
 			return err
 		}
