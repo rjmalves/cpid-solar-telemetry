@@ -51,12 +51,49 @@ func (i *Inverter) AddInverterToDB(db *mongo.Database) (primitive.ObjectID, erro
 	return oid, nil
 }
 
+// ListInverters : reads all the current inverters in the DB
+func ListInverters(db *mongo.Database) ([]*Inverter, error) {
+	ctx := context.Background()
+	filter := bson.M{}
+	cur, err := db.Collection(inverterCollection).Find(ctx, filter)
+	if err != nil {
+		return []*Inverter{}, err
+	}
+	defer cur.Close(ctx)
+	inverters := []*Inverter{}
+	for cur.Next(ctx) {
+		var i Inverter
+		if err := cur.Decode(&i); err != nil {
+			return inverters, err
+		}
+		inverters = append(inverters, &i)
+	}
+	return inverters, nil
+}
+
+// ReadInverter : reads data from a specific inverter serial
+func (i *Inverter) ReadInverter(db *mongo.Database) error {
+	ctx := context.Background()
+	filter := bson.M{
+		"serial": i.Serial,
+	}
+	res := db.Collection(inverterCollection).FindOne(ctx, filter)
+	if res.Err() != nil {
+		return res.Err()
+	}
+	res.Decode(&i)
+	return nil
+}
+
 // UpdateInverterInDB : updates information of an inverter in the DB
 func (i *Inverter) UpdateInverterInDB(db *mongo.Database) error {
 	ctx := context.Background()
 	filter := bson.M{"serial": i.Serial}
 	update := bson.M{"$set": i}
-	_, err := db.Collection(inverterCollection).UpdateOne(ctx, filter, update)
+	res, err := db.Collection(inverterCollection).UpdateOne(ctx, filter, update)
+	if res.MatchedCount == 0 {
+		return fmt.Errorf("Inverter not found")
+	}
 	return err
 }
 
@@ -67,8 +104,8 @@ func (i *Inverter) DeleteInverterFromDB(db *mongo.Database) error {
 		"serial": i.Serial,
 	}
 	res, err := db.Collection(inverterCollection).DeleteOne(ctx, filter)
-	if res.DeletedCount < 1 {
-		return fmt.Errorf("Inversor não encontrado")
+	if res.DeletedCount == 0 {
+		return fmt.Errorf("Inverter not found")
 	}
 	return err
 }
