@@ -16,5 +16,5 @@ services:
       context: .
       dockerfile: Dockerfile.test
     depends_on:
-      - mongo
+      - mongo-test
     env_file: .env.test
