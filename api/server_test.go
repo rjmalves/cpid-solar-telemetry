@@ -8,11 +8,10 @@ import (
 	"github.com/rjmalves/cpid-solar-telemetry/api/tests"
 )
 
-var ts = tests.StaticServer{}
-
 func TestMain(m *testing.M) {
 
 	// Starts the static test server
+	var ts = tests.StaticServer{}
 	ts.Initialize()
 	ts.Run(os.Getenv("APP_PORT"))
 
@@ -27,5 +26,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Error initializing the service: %v", err)
 	}
 
-	os.Exit(m.Run())
+	ret := m.Run()
+
+	os.Exit(ret)
 }
