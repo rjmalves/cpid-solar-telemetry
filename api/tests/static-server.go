@@ -28,6 +28,11 @@ func (s *StaticServer) Run(appPort string) {
 }
 
 func (s *StaticServer) initializeRoutes() {
-	s.Router.Static("/telemetry-data", "./assets/telemetry-data")
-	s.Router.Static("/inverter", "./assets/inverter")
+	// CAREFUL: these directoty paths are relative to the go app launch.
+	// When in release, it is executed from the repo root. In tests, from
+	// inside the api/ folder.
+	// Simply: for testing, the paths should be ./tests/assets/...
+	// In release, should be ./api/tests/assets/...
+	s.Router.Static("/telemetry-data", "./tests/assets/telemetry-data")
+	s.Router.Static("/inverter", "./tests/assets/inverter")
 }
