@@ -2,8 +2,11 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/rjmalves/cpid-solar-telemetry/api/models"
 	"github.com/rjmalves/cpid-solar-telemetry/api/seed"
@@ -154,5 +157,21 @@ func TestUpdateExistingInverter(t *testing.T) {
 }
 
 func TestCreateInverterFromScrapper(t *testing.T) {
-
+	ctx := context.Background()
+	// Removes all data in the collection
+	if err := s.RefreshInverterCollection(ctx); err != nil {
+		log.Fatalf("Error refreshing the DB: %v", err)
+	}
+	// Visits the static server
+	baseURL := fmt.Sprintf("http://%v:%v/", os.Getenv("APP_HOST"), os.Getenv("APP_PORT"))
+	iURL := baseURL + s.InverterPaths[0] + "/"
+	go s.InverterCollector.Visit(iURL)
+	time.Sleep(100 * time.Millisecond)
+	// Checks if the inverter is in DB
+	i := models.Inverter{
+		Serial: "7E1504FE-95",
+	}
+	if err := i.ReadInverter(s.DB); err != nil {
+		t.Errorf("Couldn't create inverter from scrapper\n")
+	}
 }
