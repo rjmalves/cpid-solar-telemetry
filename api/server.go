@@ -11,6 +11,7 @@ var s = controllers.Server{}
 
 // Run : launches the service
 func Run() {
+
 	if err := s.Initialize(os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_USER"),

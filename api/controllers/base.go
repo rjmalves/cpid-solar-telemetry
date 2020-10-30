@@ -90,11 +90,13 @@ func (s *Server) Run(appHost, appPort, iPeriod, tPeriod string) {
 	// Prepares the app URL for scrapper visiting
 	baseURL := fmt.Sprintf("http://%v:%v/", appHost, appPort)
 	// Runs collector routines
+	ich := make(chan bool)
 	if i, err := strconv.ParseInt(iPeriod, 10, 64); err == nil {
-		go s.InverterAcquisition(baseURL, i)
+		go s.InverterAcquisition(baseURL, i, ich)
 	}
+	tch := make(chan bool)
 	if t, err := strconv.ParseInt(tPeriod, 10, 64); err == nil {
-		go s.TelemetryDataAcquisition(baseURL, t)
+		go s.TelemetryDataAcquisition(baseURL, t, tch)
 	}
 	// Exits on SIGINT
 	ch := make(chan os.Signal, 1)

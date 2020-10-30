@@ -45,7 +45,7 @@ func (s *Server) InverterCollectorConfig() error {
 }
 
 // InverterAcquisition : uses the scrapper for acquire inverter data
-func (s *Server) InverterAcquisition(baseURL string, iPeriod int64) {
+func (s *Server) InverterAcquisition(baseURL string, iPeriod int64, quit chan bool) {
 	// Prepares the timers
 	iTimers := map[string]int64{}
 	for _, i := range s.InverterPaths {
@@ -53,16 +53,21 @@ func (s *Server) InverterAcquisition(baseURL string, iPeriod int64) {
 	}
 	// Runs forever
 	for {
-		// For each inverter
-		for _, i := range s.InverterPaths {
-			// Checks timeout
-			cTime := time.Now().Unix()
-			if cTime-iTimers[i] >= iPeriod {
-				iTimers[i] = cTime
-				iURL := baseURL + i + "/"
-				go s.InverterCollector.Visit(iURL)
+		select {
+		case <-quit:
+			return
+		default:
+			// For each inverter
+			for _, i := range s.InverterPaths {
+				// Checks timeout
+				cTime := time.Now().Unix()
+				if cTime-iTimers[i] >= iPeriod {
+					iTimers[i] = cTime
+					iURL := baseURL + i + "/"
+					go s.InverterCollector.Visit(iURL)
+				}
 			}
+			time.Sleep(1 * time.Second)
 		}
-		time.Sleep(1 * time.Second)
 	}
 }
