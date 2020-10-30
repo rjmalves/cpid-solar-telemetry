@@ -26,6 +26,25 @@ type TelemetryData struct {
 	InputCurrent      float64            `bson:"inputCurrent" json:"inputCurrent"`
 }
 
+// ListTelemetryData : reads telemetry data from DB using an filter
+func ListTelemetryData(db *mongo.Database, filter bson.M) ([]*TelemetryData, error) {
+	ctx := context.Background()
+	cur, err := db.Collection(telemetryDataCollection).Find(ctx, filter)
+	if err != nil {
+		return []*TelemetryData{}, err
+	}
+	defer cur.Close(ctx)
+	telemetry := []*TelemetryData{}
+	for cur.Next(ctx) {
+		var i TelemetryData
+		if err := cur.Decode(&i); err != nil {
+			return telemetry, err
+		}
+		telemetry = append(telemetry, &i)
+	}
+	return telemetry, nil
+}
+
 // AlreadyAcquired : checks if a given telemetry data is already in the DB
 func (t *TelemetryData) AlreadyAcquired(db *mongo.Database) bool {
 	ctx := context.Background()
