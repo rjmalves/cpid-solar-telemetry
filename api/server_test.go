@@ -3,15 +3,19 @@ package api
 import (
 	"log"
 	"os"
+	"testing"
 
-	"github.com/rjmalves/cpid-solar-telemetry/api/controllers"
+	"github.com/rjmalves/cpid-solar-telemetry/api/tests"
 )
 
-var s = controllers.Server{}
+func TestMain(m *testing.M) {
 
-// Run : launches the service
-func Run() {
+	// Starts the static test server
+	var ts = tests.StaticServer{}
+	ts.Initialize()
+	ts.Run(os.Getenv("APP_PORT"))
 
+	// Initializes the scrapper
 	if err := s.Initialize(os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_USER"),
@@ -22,8 +26,7 @@ func Run() {
 		log.Fatalf("Error initializing the service: %v", err)
 	}
 
-	s.Run(os.Getenv("APP_HOST"),
-		os.Getenv("APP_PORT"),
-		os.Getenv("INVERTER_ACQ_PERIOD"),
-		os.Getenv("TELEMETRY_ACQ_PERIOD"))
+	ret := m.Run()
+
+	os.Exit(ret)
 }

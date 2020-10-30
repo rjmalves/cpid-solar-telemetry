@@ -41,7 +41,7 @@ func (s *Server) TelemetryDataCollectorConfig() error {
 }
 
 // TelemetryDataAcquisition : uses the scrapper for acquire telemetry data
-func (s *Server) TelemetryDataAcquisition(baseURL string, tPeriod int64) {
+func (s *Server) TelemetryDataAcquisition(baseURL string, tPeriod int64, quit chan bool) {
 	// Prepares the timers
 	tTimers := map[string]int64{}
 	for _, t := range s.TelemetryPaths {
@@ -49,16 +49,21 @@ func (s *Server) TelemetryDataAcquisition(baseURL string, tPeriod int64) {
 	}
 	// Runs forever
 	for {
-		// For each telemetry
-		for _, t := range s.TelemetryPaths {
-			// Checks timeout
-			cTime := time.Now().Unix()
-			if cTime-tTimers[t] >= tPeriod {
-				tTimers[t] = cTime
-				tURL := baseURL + t + "/"
-				go s.TelemetryCollector.Visit(tURL)
+		select {
+		case <-quit:
+			return
+		default:
+			// For each telemetry
+			for _, t := range s.TelemetryPaths {
+				// Checks timeout
+				cTime := time.Now().Unix()
+				if cTime-tTimers[t] >= tPeriod {
+					tTimers[t] = cTime
+					tURL := baseURL + t + "/"
+					go s.TelemetryCollector.Visit(tURL)
+				}
 			}
+			time.Sleep(1 * time.Second)
 		}
-		time.Sleep(1 * time.Second)
 	}
 }
