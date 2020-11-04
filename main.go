@@ -1,7 +1,12 @@
 package main
 
-import "github.com/rjmalves/cpid-solar-telemetry/api"
+import (
+	"fmt"
+
+	"github.com/rjmalves/cpid-solar-telemetry/api"
+)
 
 func main() {
+	fmt.Println("TO VIVO")
 	api.Run()
 }
